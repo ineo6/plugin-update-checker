@@ -50,8 +50,8 @@ class PluginUpdateCheckerPanel extends Debug_Bar_Panel {
 			if ( $this->updateChecker->throttleRedundantChecks && ($this->updateChecker->checkPeriod > 0) ) {
 				$this->row(
 					'Throttling',
-					sprintf(
-						'Enabled. If an update is already available, check for updates every %1$d hours instead of every %2$d hours.',
+					sprintf(__(
+						'Enabled. If an update is already available, check for updates every %1$d hours instead of every %2$d hours.'),
 						$this->updateChecker->throttledCheckPeriod,
 						$this->updateChecker->checkPeriod
 					)

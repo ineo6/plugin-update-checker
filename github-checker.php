@@ -80,6 +80,8 @@ class PucGitHubChecker_2_0 extends PluginUpdateChecker_2_0 {
 				}
 				if ( isset($release->assets[0]) ) {
 					$info->downloaded = $release->assets[0]->download_count;
+					$info->last_updated = $release->assets[0]->updated_at;
+					$info->download_url = $release->assets[0]->browser_download_url;
 				}
 			} else {
 				//Failing that, use the tag with the highest version number.

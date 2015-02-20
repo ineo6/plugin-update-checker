@@ -162,7 +162,7 @@ class PluginUpdateChecker_2_0 {
 			$scheduleName = 'every' . $this->checkPeriod . 'hours';
 			$schedules[$scheduleName] = array(
 				'interval' => $this->checkPeriod * 3600, 
-				'display' => sprintf('Every %d hours', $this->checkPeriod),
+				'display' => sprintf(__('Every %d hours','plugin-update-checker'), $this->checkPeriod),
 			);
 		}
 		return $schedules;
@@ -227,7 +227,7 @@ class PluginUpdateChecker_2_0 {
 			$pluginInfo->filename = $this->pluginFile;
 			$pluginInfo->slug = $this->slug;
 		} else if ( $this->debugMode ) {
-			$message = sprintf("The URL %s does not point to a valid plugin metadata file. ", $url);
+			$message = sprintf(__("The URL %s does not point to a valid plugin metadata file. ",'plugin-update-checker'), $url);
 			if ( is_wp_error($result) ) {
 				$message .= "WP HTTP error: " . $result->get_error_message();
 			} else if ( isset($result['response']['code']) ) {
@@ -278,7 +278,7 @@ class PluginUpdateChecker_2_0 {
 			if ( $this->debugMode ) {
 				trigger_error(
 					sprintf(
-						"Can't to read the Version header for '%s'. The filename is incorrect or is not a plugin.",
+						__("Can't to read the Version header for '%s'. The filename is incorrect or is not a plugin.",'plugin-update-checker'),
 						$this->pluginFile
 					),
 					E_USER_WARNING
@@ -298,8 +298,8 @@ class PluginUpdateChecker_2_0 {
 			//This can happen if the plugin filename is wrong.
 			if ( $this->debugMode ) {
 				trigger_error(
-					sprintf(
-						"Can't to read the plugin header for '%s'. The file does not exist.",
+					sprintf(__(
+						"Can't to read the plugin header for '%s'. The file does not exist.",'plugin-update-checker'),
 						$this->pluginFile
 					),
 					E_USER_WARNING
@@ -326,7 +326,7 @@ class PluginUpdateChecker_2_0 {
 		if ( $installedVersion === null ) {
 			if ( $this->debugMode ) {
 				trigger_error(
-					sprintf('Skipping update check for %s - installed version unknown.', $this->pluginFile),
+					sprintf(__('Skipping update check for %s - installed version unknown.','plugin-update-checker'), $this->pluginFile),
 					E_USER_WARNING
 				);
 			}
@@ -592,19 +592,19 @@ class PluginUpdateChecker_2_0 {
 		}
 		$correctedSource = trailingslashit($remoteSource) . $pluginDirectoryName . '/';
 		if ( $source !== $correctedSource ) {
-			$upgrader->skin->feedback(sprintf(
-				'Renaming %s to %s&#8230;',
+			$upgrader->skin->feedback(sprintf(__(
+				'Renaming %s to %s&#8230;','plugin-update-checker'),
 				'<span class="code">' . basename($source) . '</span>',
 				'<span class="code">' . $pluginDirectoryName . '</span>'
 			));
 
 			if ( $wp_filesystem->move($source, $correctedSource, true) ) {
-				$upgrader->skin->feedback('Plugin directory successfully renamed.');
+				$upgrader->skin->feedback(__('Plugin directory successfully renamed.','plugin-update-checker'));
 				return $correctedSource;
 			} else {
 				return new WP_Error(
 					'puc-rename-failed',
-					'Unable to rename the update to match the existing plugin directory.'
+					__('Unable to rename the update to match the existing plugin directory.','plugin-update-checker')
 				);
 			}
 		}
@@ -667,7 +667,7 @@ class PluginUpdateChecker_2_0 {
 				'puc_check_for_updates'
 			);
 
-			$linkText = apply_filters('puc_manual_check_link-' . $this->slug, 'Check for updates');
+			$linkText = apply_filters('puc_manual_check_link-' . $this->slug, __('Check for updates','plugin-update-checker'));
 			if ( !empty($linkText) ) {
 				$pluginMeta[] = sprintf('<a href="%s">%s</a>', esc_attr($linkUrl), $linkText);
 			}
@@ -682,12 +682,13 @@ class PluginUpdateChecker_2_0 {
 	 * @return void
 	 */
 	public function handleManualCheck() {
+		$this->textdomain_init();
 		$shouldCheck =
 			   isset($_GET['puc_check_for_updates'], $_GET['puc_slug'])
 			&& $_GET['puc_slug'] == $this->slug
 			&& current_user_can('update_plugins')
 			&& check_admin_referer('puc_check_for_updates');
-
+		
 		if ( $shouldCheck ) {
 			$update = $this->checkForUpdates();
 			$status = ($update === null) ? 'no_update' : 'update_available';
@@ -711,11 +712,11 @@ class PluginUpdateChecker_2_0 {
 		if ( isset($_GET['puc_update_check_result'], $_GET['puc_slug']) && ($_GET['puc_slug'] == $this->slug) ) {
 			$status = strval($_GET['puc_update_check_result']);
 			if ( $status == 'no_update' ) {
-				$message = 'This plugin is up to date.';
-			} else if ( $status == 'update_available' ) {
-				$message = 'A new version of this plugin is available.';
+				$message = __('This plugin is up to date.','plugin-update-checker');
+			} else if ( $status == 'update_available') {
+				$message = __('A new version of this plugin is available.','plugin-update-checker');
 			} else {
-				$message = sprintf('Unknown update checker status "%s"', htmlentities($status));
+				$message = sprintf(__('Unknown update checker status "%s"','plugin-update-checker'), htmlentities($status));
 			}
 			printf(
 				'<div class="updated"><p>%s</p></div>',
@@ -830,6 +831,14 @@ class PluginUpdateChecker_2_0 {
 			$this->debugBarPlugin = new PucDebugBarPlugin($this);
 		}
 	}
+	
+	/**
+	 * load textdomain.
+	 */
+	public	function textdomain_init ()
+	{
+		load_plugin_textdomain('plugin-update-checker',false,dirname( plugin_basename( __FILE__ ) ));
+	}
 }
 
 endif;
@@ -896,8 +905,8 @@ class PluginInfo_2_0 {
 		$valid = isset($apiResponse->name) && !empty($apiResponse->name) && isset($apiResponse->version) && !empty($apiResponse->version);
 		if ( !$valid ){
 			if ( $triggerErrors ) {
-				trigger_error(
-					"The plugin metadata file does not contain the required 'name' and/or 'version' keys.",
+				trigger_error(__(
+					"The plugin metadata file does not contain the required 'name' and/or 'version' keys.",'plugin-update-checker'),
 					E_USER_NOTICE
 				);
 			}
